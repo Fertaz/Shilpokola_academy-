@@ -3,13 +3,36 @@ package com.example.project_by_pushon;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class U8G1ProcessPayments {
 
     @FXML
-    private ComboBox<String> pendingRequestsCB;
+    private TableView<Payment> paymentsTV;
+
+    @FXML
+    private TableColumn<Payment, String> paymentIdTC;
+
+    @FXML
+    private TableColumn<Payment, String> vendorNameTC;
+
+    @FXML
+    private TableColumn<Payment, Double> amountTC;
+
+    @FXML
+    private TableColumn<Payment, String> statusTC;
+
+    @FXML
+    private TextField newPaymentIdF;
+
+    @FXML
+    private TextField newVendorNameFi;
+
+    @FXML
+    private TextField newAmountF;
 
     @FXML
     private Label notificationLabel;
@@ -18,48 +41,56 @@ public class U8G1ProcessPayments {
 
     @FXML
     public void initialize() {
+        paymentIdTC.setCellValueFactory(new PropertyValueFactory<>("paymentId"));
+        vendorNameTC.setCellValueFactory(new PropertyValueFactory<>("vendorName"));
+        amountTC.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        statusTC.setCellValueFactory(new PropertyValueFactory<>("status"));
+
         loadPendingRequests();
     }
 
     private void loadPendingRequests() {
-        pendingPayments = FXCollections.observableArrayList(
-                new Payment("PAY-003", "Staging Solutions", 2500.50, "2024-08-17", "Pending"),
-                new Payment("PAY-005", "Security Team LLC", 3200.00, "2024-08-19", "Pending")
-        );
-
-        ObservableList<String> requestStrings = FXCollections.observableArrayList();
-        for (Payment payment : pendingPayments) {
-            requestStrings.add(payment.getPaymentId() + " - " + payment.getVendorName() + " ($" + payment.getAmount() + ")");
-        }
-        pendingRequestsCB.setItems(requestStrings);
+        pendingPayments = FXCollections.observableArrayList();
+        paymentsTV.setItems(pendingPayments);
     }
 
     @FXML
-    private void viewDownloadONA() {
-        if (pendingRequestsCB.getValue() != null) {
-            notificationLabel.setText("Documents opened for: " + pendingRequestsCB.getValue());
-        } else {
-            notificationLabel.setText("Please select a pending request first.");
-        }
-    }
+    private void addPaymentONA() {
+        try {
+            String paymentId = newPaymentIdF.getText().trim();
+            String vendorName = newVendorNameFi.getText().trim();
+            String amountText = newAmountF.getText().trim();
 
-    @FXML
-    private void initiatePaymentONA() {
-        if (pendingRequestsCB.getValue() != null) {
-            notificationLabel.setText("Payment initiated for: " + pendingRequestsCB.getValue());
-        } else {
-            notificationLabel.setText("Please select a pending request first.");
+            if (paymentId.isEmpty() || vendorName.isEmpty() || amountText.isEmpty()) {
+                notificationLabel.setText("Please fill in all fields");
+                return;
+            }
+
+            double amount = Double.parseDouble(amountText);
+            LocalDate today = LocalDate.now();
+            String paymentDate = today.format(DateTimeFormatter.ISO_DATE);
+
+            Payment newPayment = new Payment(paymentId, vendorName, amount, paymentDate, "Pending");
+            pendingPayments.add(newPayment);
+
+            newPaymentIdF.clear();
+            newVendorNameFi.clear();
+            newAmountF.clear();
+
+            notificationLabel.setText("Payment request added: " + paymentId);
+        } catch (NumberFormatException e) {
+            notificationLabel.setText("Please enter a valid amount");
         }
     }
 
     @FXML
     private void markCompleteIONA() {
-        if (pendingRequestsCB.getValue() != null) {
-            notificationLabel.setText("Payment marked as complete: " + pendingRequestsCB.getValue());
-            pendingRequestsCB.getItems().remove(pendingRequestsCB.getValue());
-            pendingRequestsCB.setValue(null);
+        Payment selectedPayment = paymentsTV.getSelectionModel().getSelectedItem();
+        if (selectedPayment != null) {
+            pendingPayments.remove(selectedPayment);
+            notificationLabel.setText("Payment marked as complete: " + selectedPayment.getPaymentId() + " - " + selectedPayment.getVendorName());
         } else {
-            notificationLabel.setText("Please select a pending request first.");
+            notificationLabel.setText("Please select a payment request first.");
         }
     }
 }

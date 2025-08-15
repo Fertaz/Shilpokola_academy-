@@ -3,8 +3,8 @@ package com.example.project_by_pushon;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 public class U8G2FinancialReports {
 
@@ -14,12 +14,50 @@ public class U8G2FinancialReports {
     @FXML
     private Label notificationLabel;
 
+    @FXML
+    private TextField emailTF;
+
+    @FXML
+    private TextField revenueTF;
+
+    @FXML
+    private TextField expensesTF;
+
+    @FXML
+    private TableView<FinancialReport> reportsTV;
+
+    @FXML
+    private TableColumn<FinancialReport, String> reportIdTC;
+
+    @FXML
+    private TableColumn<FinancialReport, String> reportPeriodTC;
+
+    @FXML
+    private TableColumn<FinancialReport, Double> totalRevenuetTC;
+
+    @FXML
+    private TableColumn<FinancialReport, Double> totalExpensesTC;
+
+    @FXML
+    private TableColumn<FinancialReport, Double> netProfitTC;
+
     private ObservableList<FinancialReport> availableReports;
+    private int reportCounter = 1;
 
     @FXML
     public void initialize() {
         loadReportPeriods();
-        loadSampleData();
+        setupTableColumns();
+        availableReports = FXCollections.observableArrayList();
+        reportsTV.setItems(availableReports);
+    }
+
+    private void setupTableColumns() {
+        reportIdTC.setCellValueFactory(new PropertyValueFactory<>("reportId"));
+        reportPeriodTC.setCellValueFactory(new PropertyValueFactory<>("reportPeriod"));
+        totalRevenuetTC.setCellValueFactory(new PropertyValueFactory<>("totalRevenue"));
+        totalExpensesTC.setCellValueFactory(new PropertyValueFactory<>("totalExpenses"));
+        netProfitTC.setCellValueFactory(new PropertyValueFactory<>("netProfit"));
     }
 
     private void loadReportPeriods() {
@@ -32,20 +70,27 @@ public class U8G2FinancialReports {
         reportPeriodCB.setItems(periods);
     }
 
-    private void loadSampleData() {
-        availableReports = FXCollections.observableArrayList(
-                new FinancialReport("REP-2024-01", "July 2024 Summary", "2024-08-01", 15000.00, 8500.50),
-                new FinancialReport("REP-2024-02", "Vendor Payments Q3", "2024-08-05", 0.00, 12500.75),
-                new FinancialReport("REP-2024-03", "Ticket Sales Analysis", "2024-08-10", 25000.00, 250.00),
-                new FinancialReport("REP-2024-04", "Merchandise Revenue", "2024-08-12", 8500.00, 3200.20),
-                new FinancialReport("REP-2024-05", "Overall Event P&L", "2024-08-14", 43500.00, 24450.95)
-        );
-    }
-
     @FXML
-    private void generateReportONA() {
+    private void addReportONA() {
         if (reportPeriodCB.getValue() != null) {
-            notificationLabel.setText("Financial report generated for: " + reportPeriodCB.getValue());
+            try {
+                String reportId = "REP-2024-" + String.format("%02d", reportCounter++);
+                String reportPeriod = reportPeriodCB.getValue();
+
+                double revenue = Double.parseDouble(revenueTF.getText());
+                double expenses = Double.parseDouble(expensesTF.getText());
+
+                FinancialReport newReport = new FinancialReport(reportId, reportPeriod, revenue, expenses);
+                availableReports.add(newReport);
+
+                notificationLabel.setText("Financial report added for: " + reportPeriod);
+
+                // Clear input fields after adding
+                revenueTF.clear();
+                expensesTF.clear();
+            } catch (NumberFormatException e) {
+                notificationLabel.setText("Please enter valid numbers for revenue and expenses.");
+            }
         } else {
             notificationLabel.setText("Please select a report period first.");
         }
@@ -53,19 +98,27 @@ public class U8G2FinancialReports {
 
     @FXML
     private void downloadpdfONA() {
-        if (reportPeriodCB.getValue() != null) {
-            notificationLabel.setText("PDF downloaded for: " + reportPeriodCB.getValue());
+        FinancialReport selectedReport = reportsTV.getSelectionModel().getSelectedItem();
+        if (selectedReport != null) {
+            notificationLabel.setText("Downloaded report: " + selectedReport.getReportId());
+            System.out.println("Downloaded report: " + selectedReport.getReportId());
         } else {
-            notificationLabel.setText("Please generate a report first.");
+            notificationLabel.setText("Please select a report from the table first.");
         }
     }
 
     @FXML
     private void emailONA() {
-        if (reportPeriodCB.getValue() != null) {
-            notificationLabel.setText("Report emailed for: " + reportPeriodCB.getValue());
+        FinancialReport selectedReport = reportsTV.getSelectionModel().getSelectedItem();
+        String email = emailTF.getText();
+
+        if (selectedReport != null && email != null && !email.isEmpty()) {
+            notificationLabel.setText("Emailed report: " + selectedReport.getReportId() + " to " + email);
+            System.out.println("Emailed to " + email + ": " + selectedReport.getReportId());
+        } else if (selectedReport == null) {
+            notificationLabel.setText("Please select a report from the table first.");
         } else {
-            notificationLabel.setText("Please generate a report first.");
+            notificationLabel.setText("Please enter an email address.");
         }
     }
 }

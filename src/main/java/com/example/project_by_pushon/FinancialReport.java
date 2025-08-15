@@ -3,16 +3,14 @@ package com.example.project_by_pushon;
 public class FinancialReport {
 
     private String reportId;
-    private String reportName;
-    private String creationDate;
+    private String reportPeriod;
     private double totalRevenue;
     private double totalExpenses;
     private double netProfit;
 
-    public FinancialReport(String reportId, String reportName, String creationDate, double totalRevenue, double totalExpenses) {
+    public FinancialReport(String reportId, String reportPeriod, double totalRevenue, double totalExpenses) {
         this.reportId = reportId;
-        this.reportName = reportName;
-        this.creationDate = creationDate;
+        this.reportPeriod = reportPeriod;
         this.totalRevenue = totalRevenue;
         this.totalExpenses = totalExpenses;
         this.netProfit = totalRevenue - totalExpenses;
@@ -26,20 +24,12 @@ public class FinancialReport {
         this.reportId = reportId;
     }
 
-    public String getReportName() {
-        return reportName;
+    public String getReportPeriod() {
+        return reportPeriod;
     }
 
-    public void setReportName(String reportName) {
-        this.reportName = reportName;
-    }
-
-    public String getCreationDate() {
-        return creationDate;
-    }
-
-    public void setCreationDate(String creationDate) {
-        this.creationDate = creationDate;
+    public void setReportPeriod(String reportPeriod) {
+        this.reportPeriod = reportPeriod;
     }
 
     public double getTotalRevenue() {
@@ -72,8 +62,7 @@ public class FinancialReport {
     public String toString() {
         return "FinancialReport{" +
                 "reportId='" + reportId + '\'' +
-                ", reportName='" + reportName + '\'' +
-                ", creationDate='" + creationDate + '\'' +
+                ", reportPeriod='" + reportPeriod + '\'' +
                 ", totalRevenue=" + totalRevenue +
                 ", totalExpenses=" + totalExpenses +
                 ", netProfit=" + netProfit +
